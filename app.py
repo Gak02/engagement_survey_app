@@ -67,15 +67,19 @@ QUESTIONS = {
 }
 
 # 回答選択肢
-SCALE_OPTIONS = {
-    0: "0 - 全くない",
-    1: "1 - 1年に数回以下",
-    2: "2 - 1ヶ月に1回以下",
-    3: "3 - 1ヶ月に数回",
-    4: "4 - 1週間に1回",
-    5: "5 - 1週間に数回",
-    6: "6 - 毎日",
-}
+SCALE_OPTIONS = [
+    "0 - 全くない",
+    "1 - 1年に数回以下",
+    "2 - 1ヶ月に1回以下",
+    "3 - 1ヶ月に数回",
+    "4 - 1週間に1回",
+    "5 - 1週間に数回",
+    "6 - 毎日",
+]
+
+def get_score_from_option(option):
+    """選択肢からスコア（数値）を抽出"""
+    return int(option.split(" - ")[0])
 
 # スコア解釈の基準（Schaufeli & Bakkerの基準を参考）
 def get_score_level(score):
@@ -241,28 +245,44 @@ def main():
         st.markdown("---")
         
         responses = {}
+        all_answered = True
         
         for q_num, q_data in QUESTIONS.items():
             st.markdown(f"**Q{q_num}. {q_data['text']}**")
             st.caption(f"📌 サブスケール: {q_data['subscale']}")
             
-            response = st.select_slider(
-                f"q{q_num}",
-                options=list(SCALE_OPTIONS.keys()),
-                format_func=lambda x: SCALE_OPTIONS[x],
-                value=st.session_state.responses.get(q_num, 3),
-                key=f"slider_{q_num}",
+            # セッションステートから以前の回答を取得（インデックス形式）
+            default_index = None
+            if q_num in st.session_state.responses:
+                default_index = st.session_state.responses[q_num]
+            
+            response = st.radio(
+                f"Q{q_num}の回答",
+                options=SCALE_OPTIONS,
+                index=default_index,
+                key=f"radio_{q_num}",
                 label_visibility="collapsed"
             )
-            responses[q_num] = response
+            
+            if response is None:
+                all_answered = False
+                responses[q_num] = None
+            else:
+                responses[q_num] = get_score_from_option(response)
+            
             st.markdown("---")
         
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             if st.button("🔍 結果を見る", use_container_width=True, type="primary"):
-                st.session_state.responses = responses
-                st.session_state.submitted = True
-                st.rerun()
+                # 未回答チェック
+                unanswered = [q for q, r in responses.items() if r is None]
+                if unanswered:
+                    st.error(f"⚠️ Q{', Q'.join(map(str, unanswered))} が未回答です。すべての質問に回答してください。")
+                else:
+                    st.session_state.responses = responses
+                    st.session_state.submitted = True
+                    st.rerun()
     
     with tab2:
         if st.session_state.submitted and st.session_state.responses:

@@ -11,48 +11,6 @@ st.set_page_config(
     layout="centered"
 )
 
-# カスタムCSS
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #1f77b4;
-        text-align: center;
-        margin-bottom: 1rem;
-    }
-    .sub-header {
-        font-size: 1.1rem;
-        color: #666;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .score-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1.5rem;
-        border-radius: 1rem;
-        color: white;
-        text-align: center;
-        margin: 0.5rem 0;
-    }
-    .score-value {
-        font-size: 2.5rem;
-        font-weight: bold;
-    }
-    .score-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-    }
-    .interpretation-box {
-        background-color: #f0f2f6;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #1f77b4;
-        margin: 1rem 0;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # 質問項目の定義
 QUESTIONS = {
     1: {"text": "仕事をしていると、活力がみなぎるように感じる", "subscale": "活力"},
@@ -81,20 +39,20 @@ def get_score_from_option(option):
     """選択肢からスコア（数値）を抽出"""
     return int(option.split(" - ")[0])
 
-# スコア解釈の基準（Schaufeli & Bakkerの基準を参考）
 def get_score_level(score):
+    """スコア解釈の基準"""
     if score < 1.0:
-        return "非常に低い", "#e74c3c"
+        return "非常に低い"
     elif score < 2.5:
-        return "低い", "#e67e22"
+        return "低い"
     elif score < 3.5:
-        return "やや低い", "#f39c12"
+        return "やや低い"
     elif score < 4.5:
-        return "平均的", "#3498db"
+        return "平均的"
     elif score < 5.5:
-        return "高い", "#27ae60"
+        return "高い"
     else:
-        return "非常に高い", "#16a085"
+        return "非常に高い"
 
 def calculate_scores(responses):
     """サブスケールと総合スコアを計算"""
@@ -122,7 +80,7 @@ def create_radar_chart(scores):
         scores["熱意 (Dedication)"],
         scores["没頭 (Absorption)"]
     ]
-    values.append(values[0])  # レーダーチャートを閉じるため
+    values.append(values[0])
     categories.append(categories[0])
     
     fig = go.Figure()
@@ -158,14 +116,11 @@ def create_bar_chart(scores):
         "スコア": list(scores.values())
     })
     
-    colors = [get_score_level(s)[1] for s in scores.values()]
-    
     fig = px.bar(
         df, 
         x="項目", 
         y="スコア",
         color="項目",
-        color_discrete_sequence=colors,
         text=df["スコア"].round(2)
     )
     
@@ -184,51 +139,232 @@ def create_bar_chart(scores):
 def get_interpretation(scores):
     """スコアに基づく解釈を生成"""
     total = scores["総合スコア"]
-    level, _ = get_score_level(total)
+    level = get_score_level(total)
     
     interpretations = {
-        "非常に低い": """
-        ワークエンゲージメントが非常に低い状態です。仕事に対するエネルギーや意欲が
-        著しく低下している可能性があります。職場環境や業務内容の見直し、
-        上司や同僚との対話、専門家への相談を検討することをお勧めします。
-        """,
-        "低い": """
-        ワークエンゲージメントが低めの状態です。仕事への活力や熱意を
-        取り戻すために、業務の優先順位の見直しや、達成感を得られる
-        小さな目標設定から始めてみることをお勧めします。
-        """,
-        "やや低い": """
-        ワークエンゲージメントがやや低い状態です。仕事の意義や
-        やりがいを再確認し、強みを活かせる業務に注力することで、
-        エンゲージメントの向上が期待できます。
-        """,
-        "平均的": """
-        ワークエンゲージメントは平均的なレベルです。現状を維持しながら、
-        より充実した仕事経験を得るために、新しいチャレンジや
-        スキルアップの機会を探してみてはいかがでしょうか。
-        """,
-        "高い": """
-        ワークエンゲージメントが高い状態です。仕事に対して
-        ポジティブな感情を持ち、活力に満ちた状態と言えます。
-        この良い状態を維持するために、適度な休息も大切にしてください。
-        """,
-        "非常に高い": """
-        ワークエンゲージメントが非常に高い状態です。仕事に対して
-        強い情熱とエネルギーを持っています。素晴らしい状態ですが、
-        燃え尽き症候群を防ぐため、ワークライフバランスにも注意を払いましょう。
-        """
+        "非常に低い": "ワークエンゲージメントが非常に低い状態です。仕事に対するエネルギーや意欲が著しく低下している可能性があります。職場環境や業務内容の見直し、上司や同僚との対話、専門家への相談を検討することをお勧めします。",
+        "低い": "ワークエンゲージメントが低めの状態です。仕事への活力や熱意を取り戻すために、業務の優先順位の見直しや、達成感を得られる小さな目標設定から始めてみることをお勧めします。",
+        "やや低い": "ワークエンゲージメントがやや低い状態です。仕事の意義ややりがいを再確認し、強みを活かせる業務に注力することで、エンゲージメントの向上が期待できます。",
+        "平均的": "ワークエンゲージメントは平均的なレベルです。現状を維持しながら、より充実した仕事経験を得るために、新しいチャレンジやスキルアップの機会を探してみてはいかがでしょうか。",
+        "高い": "ワークエンゲージメントが高い状態です。仕事に対してポジティブな感情を持ち、活力に満ちた状態と言えます。この良い状態を維持するために、適度な休息も大切にしてください。",
+        "非常に高い": "ワークエンゲージメントが非常に高い状態です。仕事に対して強い情熱とエネルギーを持っています。素晴らしい状態ですが、燃え尽き症候群を防ぐため、ワークライフバランスにも注意を払いましょう。"
     }
     
     return interpretations.get(level, "")
 
-# メイン画面
+def show_survey():
+    """診断画面を表示"""
+    st.markdown("### 回答方法")
+    st.info("以下の9つの質問について、あなたが仕事に関してそのように感じる頻度を選択してください。すべての質問に回答後、「結果を見る」ボタンをクリックしてください。")
+    
+    st.divider()
+    
+    responses = {}
+    
+    for q_num, q_data in QUESTIONS.items():
+        st.markdown(f"**Q{q_num}. {q_data['text']}**")
+        st.caption(f"📌 サブスケール: {q_data['subscale']}")
+        
+        response = st.radio(
+            f"Q{q_num}の回答",
+            options=SCALE_OPTIONS,
+            index=None,
+            key=f"radio_{q_num}",
+            label_visibility="collapsed"
+        )
+        
+        if response is not None:
+            responses[q_num] = get_score_from_option(response)
+        else:
+            responses[q_num] = None
+        
+        st.divider()
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🔍 結果を見る", use_container_width=True, type="primary"):
+            unanswered = [q for q, r in responses.items() if r is None]
+            if unanswered:
+                st.error(f"⚠️ Q{', Q'.join(map(str, unanswered))} が未回答です。すべての質問に回答してください。")
+            else:
+                st.session_state.responses = responses
+                st.session_state.page = "result"
+                st.rerun()
+
+def show_result():
+    """結果画面を表示"""
+    scores = calculate_scores(st.session_state.responses)
+    
+    st.markdown("### 📊 あなたの診断結果")
+    st.caption(f"診断日時: {datetime.now().strftime('%Y年%m月%d日 %H:%M')}")
+    
+    # 総合スコア表示
+    st.divider()
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        total_level = get_score_level(scores["総合スコア"])
+        st.metric(
+            label="総合スコア",
+            value=f"{scores['総合スコア']:.2f}",
+            delta=total_level
+        )
+    
+    st.divider()
+    
+    # サブスケール別スコア
+    st.markdown("#### サブスケール別スコア")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        vigor_level = get_score_level(scores["活力 (Vigor)"])
+        st.metric(
+            label="活力 (Vigor)",
+            value=f"{scores['活力 (Vigor)']:.2f}",
+            delta=vigor_level
+        )
+    
+    with col2:
+        dedication_level = get_score_level(scores["熱意 (Dedication)"])
+        st.metric(
+            label="熱意 (Dedication)",
+            value=f"{scores['熱意 (Dedication)']:.2f}",
+            delta=dedication_level
+        )
+    
+    with col3:
+        absorption_level = get_score_level(scores["没頭 (Absorption)"])
+        st.metric(
+            label="没頭 (Absorption)",
+            value=f"{scores['没頭 (Absorption)']:.2f}",
+            delta=absorption_level
+        )
+    
+    st.divider()
+    
+    # グラフ
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### レーダーチャート")
+        st.plotly_chart(create_radar_chart(scores), use_container_width=True)
+    
+    with col2:
+        st.markdown("#### スコア比較")
+        st.plotly_chart(create_bar_chart(scores), use_container_width=True)
+    
+    # 解釈
+    st.markdown("### 💡 結果の解釈")
+    interpretation = get_interpretation(scores)
+    st.info(interpretation)
+    
+    # 詳細データ
+    with st.expander("📋 回答詳細データ"):
+        detail_data = []
+        for q_num, response in st.session_state.responses.items():
+            detail_data.append({
+                "質問番号": f"Q{q_num}",
+                "質問内容": QUESTIONS[q_num]["text"],
+                "サブスケール": QUESTIONS[q_num]["subscale"],
+                "回答": response,
+                "回答ラベル": SCALE_OPTIONS[response].split(" - ")[1]
+            })
+        st.dataframe(pd.DataFrame(detail_data), use_container_width=True, hide_index=True)
+    
+    # データエクスポート
+    st.divider()
+    st.markdown("### 📥 データエクスポート")
+    
+    export_data = {
+        "診断日時": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "総合スコア": scores["総合スコア"],
+        "活力スコア": scores["活力 (Vigor)"],
+        "熱意スコア": scores["熱意 (Dedication)"],
+        "没頭スコア": scores["没頭 (Absorption)"],
+    }
+    for q_num, response in st.session_state.responses.items():
+        export_data[f"Q{q_num}"] = response
+    
+    df_export = pd.DataFrame([export_data])
+    csv = df_export.to_csv(index=False).encode('utf-8-sig')
+    
+    st.download_button(
+        label="📄 CSVでダウンロード",
+        data=csv,
+        file_name=f"uwes_result_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+        mime="text/csv"
+    )
+    
+    # リセットボタン
+    if st.button("🔄 もう一度診断する", use_container_width=True):
+        st.session_state.page = "survey"
+        st.session_state.responses = {}
+        st.rerun()
+
+def show_about():
+    """UWESについての説明を表示"""
+    st.markdown("### ワークエンゲージメントとは")
+    
+    st.write("""
+    ワークエンゲージメントとは、仕事に対するポジティブで充実した心理状態を指します。
+    オランダ・ユトレヒト大学のSchaufeli教授らによって提唱された概念で、
+    バーンアウト（燃え尽き症候群）の対極に位置づけられています。
+    """)
+    
+    st.markdown("### UWES-9について")
+    
+    st.write("""
+    UWES（Utrecht Work Engagement Scale）は、ワークエンゲージメントを測定する
+    国際的に最も広く使用されている尺度です。本診断では9項目版（UWES-9）を使用しています。
+    """)
+    
+    st.markdown("### 3つのサブスケール")
+    
+    subscale_df = pd.DataFrame({
+        "サブスケール": ["活力 (Vigor)", "熱意 (Dedication)", "没頭 (Absorption)"],
+        "説明": [
+            "仕事中の高い水準のエネルギーや心理的な回復力",
+            "仕事への強い関与、意義・熱意・誇りの感覚",
+            "仕事に集中し、没頭している状態"
+        ],
+        "質問番号": ["Q1, Q2, Q5", "Q3, Q4, Q7", "Q6, Q8, Q9"]
+    })
+    st.dataframe(subscale_df, use_container_width=True, hide_index=True)
+    
+    st.markdown("### スコアの解釈目安")
+    
+    score_df = pd.DataFrame({
+        "スコア範囲": ["0.0 - 0.9", "1.0 - 2.4", "2.5 - 3.4", "3.5 - 4.4", "4.5 - 5.4", "5.5 - 6.0"],
+        "レベル": ["非常に低い", "低い", "やや低い", "平均的", "高い", "非常に高い"]
+    })
+    st.dataframe(score_df, use_container_width=True, hide_index=True)
+    
+    st.markdown("### 出典・参考文献")
+    
+    st.write("""
+    - Schaufeli, W.B., & Bakker, A.B. (2003). UWES – Utrecht Work Engagement Scale
+    - 島津明人 (2014). ワーク・エンゲイジメント：ポジティブ・メンタルヘルスで活力ある毎日を
+    """)
+    
+    st.divider()
+    
+    st.warning("""
+    **⚠️ 注意事項**
+    
+    本診断は、学術研究目的で開発されたUWES-9に基づいています。
+    営利目的での使用には著者の許可が必要です。
+    結果は参考情報であり、専門的な診断に代わるものではありません。
+    """)
+
+# メイン処理
 def main():
-    st.markdown('<p class="main-header">📊 ワークエンゲージメント診断</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">UWES-9（ユトレヒト・ワーク・エンゲイジメント尺度）</p>', unsafe_allow_html=True)
+    st.title("📊 ワークエンゲージメント診断")
+    st.caption("UWES-9（ユトレヒト・ワーク・エンゲイジメント尺度）")
     
     # セッションステートの初期化
-    if 'submitted' not in st.session_state:
-        st.session_state.submitted = False
+    if 'page' not in st.session_state:
+        st.session_state.page = "survey"
     if 'responses' not in st.session_state:
         st.session_state.responses = {}
     
@@ -236,199 +372,26 @@ def main():
     tab1, tab2, tab3 = st.tabs(["📝 診断", "📈 結果", "ℹ️ UWESについて"])
     
     with tab1:
-        st.markdown("### 回答方法")
-        st.info("""
-        以下の9つの質問について、あなたが仕事に関してそのように感じる頻度を選択してください。
-        すべての質問に回答後、「結果を見る」ボタンをクリックしてください。
-        """)
-        
-        st.markdown("---")
-        
-        responses = {}
-        all_answered = True
-        
-        for q_num, q_data in QUESTIONS.items():
-            st.markdown(f"**Q{q_num}. {q_data['text']}**")
-            st.caption(f"📌 サブスケール: {q_data['subscale']}")
-            
-            # セッションステートから以前の回答を取得（インデックス形式）
-            default_index = None
-            if q_num in st.session_state.responses:
-                default_index = st.session_state.responses[q_num]
-            
-            response = st.radio(
-                f"Q{q_num}の回答",
-                options=SCALE_OPTIONS,
-                index=default_index,
-                key=f"radio_{q_num}",
-                label_visibility="collapsed"
-            )
-            
-            if response is None:
-                all_answered = False
-                responses[q_num] = None
-            else:
-                responses[q_num] = get_score_from_option(response)
-            
-            st.markdown("---")
-        
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("🔍 結果を見る", use_container_width=True, type="primary"):
-                # 未回答チェック
-                unanswered = [q for q, r in responses.items() if r is None]
-                if unanswered:
-                    st.error(f"⚠️ Q{', Q'.join(map(str, unanswered))} が未回答です。すべての質問に回答してください。")
-                else:
-                    st.session_state.responses = responses
-                    st.session_state.submitted = True
-                    st.rerun()
-    
-    with tab2:
-        if st.session_state.submitted and st.session_state.responses:
-            scores = calculate_scores(st.session_state.responses)
-            
-            st.markdown("### 📊 あなたの診断結果")
-            st.caption(f"診断日時: {datetime.now().strftime('%Y年%m月%d日 %H:%M')}")
-            
-            # スコアカード
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                total_level, total_color = get_score_level(scores["総合スコア"])
-                st.markdown(f"""
-                <div class="score-card" style="background: linear-gradient(135deg, {total_color} 0%, {total_color}99 100%);">
-                    <div class="score-label">総合スコア</div>
-                    <div class="score-value">{scores["総合スコア"]:.2f}</div>
-                    <div class="score-label">{total_level}</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                subscale_html = ""
-                for name, score in list(scores.items())[:-1]:
-                    level, color = get_score_level(score)
-                    subscale_html += f"<div style='margin: 0.3rem 0;'><strong>{name.split(' ')[0]}:</strong> {score:.2f} ({level})</div>"
-                
-                st.markdown(f"""
-                <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 0.5rem; height: 100%;">
-                    <div style="font-weight: bold; margin-bottom: 0.5rem;">サブスケール別スコア</div>
-                    {subscale_html}
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown("---")
-            
-            # グラフ
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("#### レーダーチャート")
-                st.plotly_chart(create_radar_chart(scores), use_container_width=True)
-            
-            with col2:
-                st.markdown("#### スコア比較")
-                st.plotly_chart(create_bar_chart(scores), use_container_width=True)
-            
-            # 解釈
-            st.markdown("### 💡 結果の解釈")
-            interpretation = get_interpretation(scores)
-            st.markdown(f'<div class="interpretation-box">{interpretation}</div>', unsafe_allow_html=True)
-            
-            # 詳細データ
-            with st.expander("📋 回答詳細データ"):
-                detail_data = []
-                for q_num, response in st.session_state.responses.items():
-                    detail_data.append({
-                        "質問番号": f"Q{q_num}",
-                        "質問内容": QUESTIONS[q_num]["text"],
-                        "サブスケール": QUESTIONS[q_num]["subscale"],
-                        "回答": response,
-                        "回答ラベル": SCALE_OPTIONS[response].split(" - ")[1]
-                    })
-                st.dataframe(pd.DataFrame(detail_data), use_container_width=True, hide_index=True)
-            
-            # データエクスポート
-            st.markdown("---")
-            st.markdown("### 📥 データエクスポート")
-            
-            export_data = {
-                "診断日時": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                "総合スコア": scores["総合スコア"],
-                "活力スコア": scores["活力 (Vigor)"],
-                "熱意スコア": scores["熱意 (Dedication)"],
-                "没頭スコア": scores["没頭 (Absorption)"],
-            }
-            for q_num, response in st.session_state.responses.items():
-                export_data[f"Q{q_num}"] = response
-            
-            df_export = pd.DataFrame([export_data])
-            csv = df_export.to_csv(index=False).encode('utf-8-sig')
-            
-            st.download_button(
-                label="📄 CSVでダウンロード",
-                data=csv,
-                file_name=f"uwes_result_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                mime="text/csv"
-            )
-            
-            # リセットボタン
+        if st.session_state.page == "survey":
+            show_survey()
+        else:
+            st.success("✅ 診断完了！「結果」タブで結果を確認してください。")
             if st.button("🔄 もう一度診断する"):
-                st.session_state.submitted = False
+                st.session_state.page = "survey"
                 st.session_state.responses = {}
                 st.rerun()
-        
+    
+    with tab2:
+        if st.session_state.page == "result" and st.session_state.responses:
+            show_result()
         else:
             st.info("👈 「診断」タブで質問に回答してから、こちらで結果を確認できます。")
     
     with tab3:
-        st.markdown("""
-        ### ワークエンゲージメントとは
-        
-        ワークエンゲージメントとは、仕事に対するポジティブで充実した心理状態を指します。
-        オランダ・ユトレヒト大学のSchaufeli教授らによって提唱された概念で、
-        バーンアウト（燃え尽き症候群）の対極に位置づけられています。
-        
-        ### UWES-9について
-        
-        UWES（Utrecht Work Engagement Scale）は、ワークエンゲージメントを測定する
-        国際的に最も広く使用されている尺度です。本診断では9項目版（UWES-9）を使用しています。
-        
-        ### 3つのサブスケール
-        
-        | サブスケール | 説明 | 質問番号 |
-        |------------|------|---------|
-        | **活力 (Vigor)** | 仕事中の高い水準のエネルギーや心理的な回復力 | Q1, Q2, Q5 |
-        | **熱意 (Dedication)** | 仕事への強い関与、意義・熱意・誇りの感覚 | Q3, Q4, Q7 |
-        | **没頭 (Absorption)** | 仕事に集中し、没頭している状態 | Q6, Q8, Q9 |
-        
-        ### スコアの解釈目安
-        
-        | スコア範囲 | レベル |
-        |-----------|--------|
-        | 0.0 - 0.9 | 非常に低い |
-        | 1.0 - 2.4 | 低い |
-        | 2.5 - 3.4 | やや低い |
-        | 3.5 - 4.4 | 平均的 |
-        | 4.5 - 5.4 | 高い |
-        | 5.5 - 6.0 | 非常に高い |
-        
-        ### 出典・参考文献
-        
-        - Schaufeli, W.B., & Bakker, A.B. (2003). UWES – Utrecht Work Engagement Scale
-        - 島津明人 (2014). ワーク・エンゲイジメント：ポジティブ・メンタルヘルスで活力ある毎日を
-        
-        ---
-        
-        ⚠️ **注意事項**
-        
-        本診断は、学術研究目的で開発されたUWES-9に基づいています。
-        営利目的での使用には著者の許可が必要です。
-        結果は参考情報であり、専門的な診断に代わるものではありません。
-        """)
-
+        show_about()
+    
     # フッター
-    st.markdown("---")
+    st.divider()
     st.caption("© Schaufeli & Bakker (2003) - UWES-9 Japanese Version")
 
 if __name__ == "__main__":

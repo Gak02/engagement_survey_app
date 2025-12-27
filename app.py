@@ -154,8 +154,8 @@ def get_interpretation(scores):
 
 def show_survey():
     """診断画面を表示"""
-    st.markdown("### 回答方法")
-    st.info("以下の9つの質問について、あなたが仕事に関してそのように感じる頻度を選択してください。すべての質問に回答後、「結果を見る」ボタンをクリックしてください。")
+    st.markdown("### 📝 診断")
+    st.info("以下の9つの質問について、あなたが仕事に関してそのように感じる頻度を選択してください。")
     
     st.divider()
     
@@ -163,7 +163,6 @@ def show_survey():
     
     for q_num, q_data in QUESTIONS.items():
         st.markdown(f"**Q{q_num}. {q_data['text']}**")
-        st.caption(f"📌 サブスケール: {q_data['subscale']}")
         
         response = st.radio(
             f"Q{q_num}の回答",
@@ -198,9 +197,9 @@ def show_result():
     st.markdown("### 📊 あなたの診断結果")
     st.caption(f"診断日時: {datetime.now().strftime('%Y年%m月%d日 %H:%M')}")
     
-    # 総合スコア表示
     st.divider()
     
+    # 総合スコア表示
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         total_level = get_score_level(scores["総合スコア"])
@@ -296,15 +295,19 @@ def show_result():
         mime="text/csv"
     )
     
+    st.divider()
+    
     # リセットボタン
     if st.button("🔄 もう一度診断する", use_container_width=True):
-        st.session_state.page = "survey"
-        st.session_state.responses = {}
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
         st.rerun()
 
 def show_about():
     """UWESについての説明を表示"""
-    st.markdown("### ワークエンゲージメントとは")
+    st.markdown("### ℹ️ UWESについて")
+    
+    st.markdown("#### ワークエンゲージメントとは")
     
     st.write("""
     ワークエンゲージメントとは、仕事に対するポジティブで充実した心理状態を指します。
@@ -312,14 +315,14 @@ def show_about():
     バーンアウト（燃え尽き症候群）の対極に位置づけられています。
     """)
     
-    st.markdown("### UWES-9について")
+    st.markdown("#### UWES-9について")
     
     st.write("""
     UWES（Utrecht Work Engagement Scale）は、ワークエンゲージメントを測定する
     国際的に最も広く使用されている尺度です。本診断では9項目版（UWES-9）を使用しています。
     """)
     
-    st.markdown("### 3つのサブスケール")
+    st.markdown("#### 3つのサブスケール")
     
     subscale_df = pd.DataFrame({
         "サブスケール": ["活力 (Vigor)", "熱意 (Dedication)", "没頭 (Absorption)"],
@@ -332,7 +335,7 @@ def show_about():
     })
     st.dataframe(subscale_df, use_container_width=True, hide_index=True)
     
-    st.markdown("### スコアの解釈目安")
+    st.markdown("#### スコアの解釈目安")
     
     score_df = pd.DataFrame({
         "スコア範囲": ["0.0 - 0.9", "1.0 - 2.4", "2.5 - 3.4", "3.5 - 4.4", "4.5 - 5.4", "5.5 - 6.0"],
@@ -340,7 +343,7 @@ def show_about():
     })
     st.dataframe(score_df, use_container_width=True, hide_index=True)
     
-    st.markdown("### 出典・参考文献")
+    st.markdown("#### 出典・参考文献")
     
     st.write("""
     - Schaufeli, W.B., & Bakker, A.B. (2003). UWES – Utrecht Work Engagement Scale
@@ -356,6 +359,12 @@ def show_about():
     営利目的での使用には著者の許可が必要です。
     結果は参考情報であり、専門的な診断に代わるものではありません。
     """)
+    
+    st.divider()
+    
+    if st.button("📝 診断を始める", use_container_width=True, type="primary"):
+        st.session_state.page = "survey"
+        st.rerun()
 
 # メイン処理
 def main():
@@ -368,31 +377,42 @@ def main():
     if 'responses' not in st.session_state:
         st.session_state.responses = {}
     
-    # タブの作成
-    tab1, tab2, tab3 = st.tabs(["📝 診断", "📈 結果", "ℹ️ UWESについて"])
-    
-    with tab1:
-        if st.session_state.page == "survey":
-            show_survey()
-        else:
-            st.success("✅ 診断完了！「結果」タブで結果を確認してください。")
-            if st.button("🔄 もう一度診断する"):
-                st.session_state.page = "survey"
-                st.session_state.responses = {}
+    # サイドバーでナビゲーション
+    with st.sidebar:
+        st.markdown("### メニュー")
+        
+        if st.button("📝 診断", use_container_width=True):
+            st.session_state.page = "survey"
+            st.rerun()
+        
+        if st.button("📈 結果", use_container_width=True):
+            if st.session_state.responses:
+                st.session_state.page = "result"
                 st.rerun()
+            else:
+                st.warning("先に診断を完了してください")
+        
+        if st.button("ℹ️ UWESについて", use_container_width=True):
+            st.session_state.page = "about"
+            st.rerun()
+        
+        st.divider()
+        st.caption("© Schaufeli & Bakker (2003)")
+        st.caption("UWES-9 Japanese Version")
     
-    with tab2:
-        if st.session_state.page == "result" and st.session_state.responses:
+    # ページ表示
+    if st.session_state.page == "survey":
+        show_survey()
+    elif st.session_state.page == "result":
+        if st.session_state.responses:
             show_result()
         else:
-            st.info("👈 「診断」タブで質問に回答してから、こちらで結果を確認できます。")
-    
-    with tab3:
+            st.warning("まだ診断が完了していません。")
+            if st.button("📝 診断を始める", type="primary"):
+                st.session_state.page = "survey"
+                st.rerun()
+    elif st.session_state.page == "about":
         show_about()
-    
-    # フッター
-    st.divider()
-    st.caption("© Schaufeli & Bakker (2003) - UWES-9 Japanese Version")
 
 if __name__ == "__main__":
     main()
